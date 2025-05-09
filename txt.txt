@@ -1,0 +1,9 @@
+npx expo prebuild
+
+cd android
+
+./gradlew assembleRelease
+
+cd app/build/outputs/apk/release
+
+adb install app-release.apk 

@@ -8,6 +8,8 @@ import EditProfileModal from "@/components/modals/EditProfileModal";
 import { getUser } from "@/services/dataService";
 import { User } from "@/models/user";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { View } from "react-native";
+import { styles } from "@/constants/theme";
 
 export default function App() {
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
@@ -43,16 +45,17 @@ export default function App() {
     <SafeAreaProvider>
       <PermissionProvider>
         <NavigationContainer>
-          <TabNavigator />
-          <StatusBar style="auto" />
-          {user && (
-            <EditProfileModal
-              visible={isProfileModalVisible}
-              onClose={handleProfileModalClose}
-              user={user}
-              onUserUpdate={async () => {}}
-            />
-          )}
+          <View style={{ flex: 1, backgroundColor: styles.colors.background }}>
+            <TabNavigator />
+            <StatusBar style="auto" />
+            {user && (
+              <EditProfileModal
+                visible={isProfileModalVisible}
+                onClose={handleProfileModalClose}
+                user={user}
+              />
+            )}
+          </View>
         </NavigationContainer>
       </PermissionProvider>
     </SafeAreaProvider>

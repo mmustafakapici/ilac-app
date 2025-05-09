@@ -1,4 +1,4 @@
-// models/medicine.ts
+// src/models/medicine.ts
 export interface Medicine {
   id: string;
   name: string;
@@ -7,6 +7,7 @@ export interface Medicine {
     unit: string;
   };
   type?: string;
+  class?: string;
   usage?: {
     frequency: string;
     time: string[];

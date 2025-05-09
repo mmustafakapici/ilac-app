@@ -16,25 +16,51 @@ import {
   LogOut,
   Play,
   Trash2,
+  Calendar,
+  Clock,
 } from "lucide-react-native";
 import { useState, useEffect } from "react";
 import { User } from "@/models/user";
 import { getUser } from "@/services/dataService";
 import EditProfileModal from "@/components/modals/EditProfileModal";
 import NotificationSettingsModal from "@/components/modals/NotificationSettingsModal";
+import ScheduledNotificationsModal from "@/components/modals/ScheduledNotificationsModal";
 import { styles } from "@/constants/theme";
 import { cancelAllNotifications } from "@/utils/notificationUtils";
 import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  triggerManualNotification,
+  triggerPreferenceBasedNotification,
+  cancelAllSchedules,
+  scheduleRemindersFromDatabase,
+} from "@/services/reminderService";
+
+// Varsayılan demo ilacı
+const DEMO_MEDICINE = {
+  id: "demo-medicine-123",
+  name: "Parol",
+  dosage: {
+    amount: 1,
+    unit: "tablet",
+  },
+  schedule: {
+    reminders: ["08:00", "20:00"],
+  },
+};
 
 export default function ProfileScreen() {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isNotificationModalVisible, setIsNotificationModalVisible] =
     useState(false);
+  const [
+    isScheduledNotificationsModalVisible,
+    setIsScheduledNotificationsModalVisible,
+  ] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     loadUser();
+    scheduleRemindersFromDatabase();
   }, []);
 
   const loadUser = async () => {
@@ -48,14 +74,7 @@ export default function ProfileScreen() {
 
   const handleNotificationDemo = async () => {
     try {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "Bildirim Demo",
-          body: "Bu bir test bildirimidir!",
-          sound: true,
-        },
-        trigger: null,
-      });
+      await triggerManualNotification(DEMO_MEDICINE.id);
     } catch (error) {
       console.error("Bildirim gönderilirken hata oluştu:", error);
     }
@@ -153,22 +172,15 @@ export default function ProfileScreen() {
         />
 
         <ProfileOption
-          icon={
-            isDark ? (
-              <Moon color={styles.colors.text} />
-            ) : (
-              <Sun color={styles.colors.text} />
-            )
-          }
-          title="Koyu Tema"
-          rightElement={
-            <Switch
-              value={isDark}
-              onValueChange={setIsDark}
-              trackColor={{ false: "#767577", true: styles.colors.primary }}
-              thumbColor="#f4f3f4"
-            />
-          }
+          icon={<Clock color={styles.colors.text} />}
+          title="Tercih Bazlı Bildirim Demo"
+          onPress={() => triggerPreferenceBasedNotification()}
+        />
+
+        <ProfileOption
+          icon={<Calendar color={styles.colors.text} />}
+          title="Planlanmış Bildirimler"
+          onPress={() => setIsScheduledNotificationsModalVisible(true)}
         />
 
         <ProfileOption
@@ -186,7 +198,7 @@ export default function ProfileScreen() {
         <ProfileOption
           icon={<Trash2 color={styles.colors.danger} />}
           title="Tüm Bildirimleri Temizle"
-          onPress={cancelAllNotifications}
+          onPress={cancelAllSchedules}
         />
 
         <ProfileOption
@@ -210,6 +222,11 @@ export default function ProfileScreen() {
         visible={isNotificationModalVisible}
         onClose={() => setIsNotificationModalVisible(false)}
         user={user}
+      />
+
+      <ScheduledNotificationsModal
+        visible={isScheduledNotificationsModalVisible}
+        onClose={() => setIsScheduledNotificationsModalVisible(false)}
       />
     </SafeAreaView>
   );

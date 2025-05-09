@@ -21,6 +21,9 @@ const DetectedMedicineInfo: React.FC<Props> = ({ medicine, onUse }) => {
         Tür: <Text style={local.value}>{medicine.type}</Text>
       </Text>
       <Text style={local.label}>
+        Sınıf: <Text style={local.value}>{medicine.class}</Text>
+      </Text>
+      <Text style={local.label}>
         Doz:{" "}
         <Text style={local.value}>
           {medicine.dosage?.amount} {medicine.dosage?.unit}

@@ -5,6 +5,7 @@ interface RawMedicineData {
   name?: string;
   dosage?: { amount?: number | string; unit?: string };
   type?: string;
+  class?: string;
   usage?: { frequency?: string; time?: string[]; condition?: string };
   schedule?: { startDate?: string; endDate?: string | null; reminders?: string[] };
   notes?: string;
@@ -29,6 +30,12 @@ export class TextParserService {
     if (!type) return 'Tablet';
     const t = type.trim().toLowerCase();
     return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+
+  private static normalizeClass(cls?: string): string {
+    if (!cls) return 'Diğer';
+    const c = cls.trim().toLowerCase();
+    return c.charAt(0).toUpperCase() + c.slice(1);
   }
 
   private static normalizeFrequency(freq?: string): string {
@@ -83,6 +90,7 @@ export class TextParserService {
           unit: this.normalizeUnit(raw.dosage?.unit)
         },
         type: this.normalizeType(raw.type),
+        class: this.normalizeClass(raw.class),
         usage: {
           frequency: this.normalizeFrequency(raw.usage?.frequency),
           time: this.normalizeTime(raw.usage?.time),

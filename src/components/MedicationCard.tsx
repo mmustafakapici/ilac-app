@@ -52,6 +52,32 @@ export default function MedicationCard({
           },
         ]}
       >
+        {/* İlaç Başlık Bölümü */}
+        <View style={localStyles.medicationHeader}>
+          <View style={localStyles.medicationTitleContainer}>
+            <Pill
+              size={20}
+              color={styles.colors.primary}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={[styles.typography.h2, { color: styles.colors.text }]}>
+              {medicine.name}
+            </Text>
+          </View>
+          {medicine.class && (
+            <View style={localStyles.classContainer}>
+              <Text
+                style={[
+                  styles.typography.caption,
+                  { color: styles.colors.primary },
+                ]}
+              >
+                {medicine.class}
+              </Text>
+            </View>
+          )}
+        </View>
+
         <View style={localStyles.detailRow}>
           <View style={[localStyles.detailItem, { flex: 0.4 }]}>
             <View style={localStyles.horizontalDetails}>
@@ -70,7 +96,7 @@ export default function MedicationCard({
                     { color: styles.colors.text, fontWeight: "500" },
                   ]}
                 >
-                  {`${medicine.dosage.amount}${medicine.dosage.unit}`}
+                  {`${medicine.dosage?.amount}${medicine.dosage?.unit}`}
                 </Text>
               </View>
 
@@ -109,11 +135,11 @@ export default function MedicationCard({
                     { fontSize: 13, color: styles.colors.text },
                   ]}
                 >
-                  {medicine.usage.condition}
+                  {medicine.usage?.condition}
                 </Text>
               </View>
               <View style={localStyles.timeChips}>
-                {medicine.usage.time.map((time, index) => (
+                {medicine.usage?.time.map((time, index) => (
                   <View
                     key={index}
                     style={[
@@ -160,19 +186,29 @@ const localStyles = StyleSheet.create({
   medicationItem: {
     padding: 12,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    backgroundColor: "#fff",
   },
   medicationHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 12,
   },
   medicationTitleContainer: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  classContainer: {
+    backgroundColor: "rgba(0, 0, 0, 0.05)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
   },
   medicationDetails: {
     marginTop: 8,

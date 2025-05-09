@@ -20,6 +20,7 @@ import {
   TIME_PRESETS,
   UNIT_OPTIONS,
   CONDITION_OPTIONS,
+  MEDICINE_CLASS,
 } from "@/constants/medicine";
 import TimeSelector from "@/components/TimeSelector";
 import { styles } from "@/constants/theme";
@@ -32,6 +33,18 @@ import {
   updateMedicine,
 } from "@/services/dataService";
 import { generateId } from "@/utils/idUtils";
+import {
+  getDateRange,
+  combineDateAndTimeLocal,
+  getDeviceTimezone,
+  convertTimeToDeviceTimezone,
+} from "@/utils/dateUtils";
+import { scheduleRemindersFromDatabase } from "@/services/reminderService";
+import * as Notifications from "expo-notifications";
+import {
+  getNotificationId,
+  removeNotificationId,
+} from "@/services/notificationStore";
 
 interface MedicineFormModalProps {
   visible: boolean;
@@ -121,18 +134,6 @@ const SelectButton = ({
     </ScrollView>
   );
 };
-
-// Tarih aralığını gün gün diziye çeviren yardımcı fonksiyon
-function getDateRange(start: string, end: string) {
-  const dates = [];
-  let current = new Date(start);
-  const endDate = new Date(end);
-  while (current <= endDate) {
-    dates.push(current.toISOString().split("T")[0]);
-    current.setDate(current.getDate() + 1);
-  }
-  return dates;
-}
 
 export default function MedicineFormModal({
   visible,
@@ -226,6 +227,7 @@ export default function MedicineFormModal({
       ...formData,
       name: detectedMedicine.name,
       type: detectedMedicine.type,
+      class: detectedMedicine.class,
       dosage: detectedMedicine.dosage,
       usage: detectedMedicine.usage,
       schedule: detectedMedicine.schedule,
@@ -244,15 +246,25 @@ export default function MedicineFormModal({
   };
 
   const handleTimeChange = (event: any, selectedTime: Date | undefined) => {
-    setShowTimePicker(false);
-    if (selectedTime && formData.usage) {
-      const timeString = selectedTime.toLocaleTimeString().slice(0, 5);
-      const newTimes = [...(formData.usage.time || [])];
+    if (Platform.OS === "android") {
+      setShowTimePicker(false);
+    }
+
+    if (selectedTime) {
+      const timeString = selectedTime.toLocaleTimeString("tr-TR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: getDeviceTimezone(),
+      });
+
+      const newTimes = [...(formData.usage?.time || [])];
       newTimes[currentTimeIndex] = timeString;
+
       setFormData({
         ...formData,
         usage: {
-          ...formData.usage,
+          ...formData.usage!,
           time: newTimes,
         },
       });
@@ -337,6 +349,7 @@ export default function MedicineFormModal({
 
       // İlaç adı kontrolü
       if (!formData.name || formData.name.trim() === "") {
+        console.log("HATA: İlaç adı boş olamaz!");
         alert("İlaç adı zorunludur!");
         return;
       }
@@ -350,6 +363,7 @@ export default function MedicineFormModal({
       startDate?.setHours(0, 0, 0, 0);
 
       if (startDate && startDate < today) {
+        console.log("UYARI: Başlangıç tarihi geçmiş bir tarih!");
         alert(
           "Dikkat! İlacınızın başlangıç tarihi geçmiş olabilir. Bugünün tarihi otomatik olarak ayarlandı."
         );
@@ -362,7 +376,7 @@ export default function MedicineFormModal({
             endDate: "", // Bitiş tarihini sıfırla
           },
         });
-        return; // Kullanıcıya yeni tarihi göster ve tekrar kaydetmesini bekle
+        return;
       }
 
       // İlaç kaydetme/güncelleme
@@ -372,18 +386,42 @@ export default function MedicineFormModal({
         name: formData.name.trim(), // name'i temizleyip kaydediyoruz
       };
 
+      // İlaç zamanlarını timezone'a göre dönüştür
+      const timezoneAdjustedTimes =
+        medicineToSave.usage?.time?.map((time) =>
+          convertTimeToDeviceTimezone(time)
+        ) || [];
+      console.log(
+        "Timezone'a göre düzenlenmiş saatler:",
+        timezoneAdjustedTimes
+      );
+
+      const medicineToSaveWithTimezone = {
+        ...medicineToSave,
+        usage: {
+          ...medicineToSave.usage!,
+          time: timezoneAdjustedTimes,
+        },
+        schedule: {
+          ...medicineToSave.schedule!,
+          reminders: timezoneAdjustedTimes,
+        },
+      };
+
       if (isEditMode) {
-        await updateMedicine(medicineToSave);
-        console.log("İlaç başarıyla güncellendi:", medicineToSave);
+        console.log("İlaç güncelleniyor...");
+        await updateMedicine(medicineToSaveWithTimezone);
+        console.log("İlaç başarıyla güncellendi:", medicineToSaveWithTimezone);
       } else {
-        await addMedicine(medicineToSave);
-        console.log("İlaç başarıyla kaydedildi:", medicineToSave);
+        console.log("Yeni ilaç kaydediliyor...");
+        await addMedicine(medicineToSaveWithTimezone);
+        console.log("İlaç başarıyla kaydedildi:", medicineToSaveWithTimezone);
       }
 
       // Reminder ekleme
-      const start = medicineToSave.schedule?.startDate;
-      const end = medicineToSave.schedule?.endDate || start;
-      const times = medicineToSave.usage?.time || [];
+      const start = medicineToSaveWithTimezone.schedule?.startDate;
+      const end = medicineToSaveWithTimezone.schedule?.endDate || start;
+      const times = medicineToSaveWithTimezone.usage?.time || [];
 
       console.log("Reminder oluşturma parametreleri:", {
         startDate: start,
@@ -401,27 +439,33 @@ export default function MedicineFormModal({
             console.log(`${day} için ${time} saati reminder oluşturuluyor...`);
             const reminder = {
               id: generateId(),
-              medicineId: medicineToSave.id,
-              medicine: medicineToSave, // Medicine objesini ekliyoruz
+              medicineId: medicineToSaveWithTimezone.id,
+              medicine: medicineToSaveWithTimezone,
               date: day,
               time: time,
-              title: medicineToSave.name,
-              description: `${medicineToSave.dosage?.amount || ""} ${
-                medicineToSave.dosage?.unit || ""
-              } ${medicineToSave.usage?.condition || ""}`,
+              title: medicineToSaveWithTimezone.name,
+              description: `${
+                medicineToSaveWithTimezone.dosage?.amount || ""
+              } ${medicineToSaveWithTimezone.dosage?.unit || ""} ${
+                medicineToSaveWithTimezone.usage?.condition || ""
+              }`,
               isTaken: false,
-              scheduledTime: new Date(`${day}T${time}`).toISOString(),
+              scheduledTime: `${day}T${time}:00.000Z`,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             };
             await addReminder(reminder);
-            console.log("Reminder kaydedildi:", reminder);
+            console.log("Reminder tipinde veri kaydedildi:", reminder);
           }
         }
-        console.log("Tüm reminder'lar başarıyla oluşturuldu");
+        console.log("Tüm reminder'lar (veritabanında) başarıyla oluşturuldu");
       } else {
         console.log("Reminder oluşturma için gerekli parametreler eksik");
       }
+
+      // Bildirimleri yeniden planla
+      await scheduleRemindersFromDatabase();
+      console.log("Bildirimler yeniden planlandı");
 
       console.log("=== İLAÇ KAYIT İŞLEMİ TAMAMLANDI ===");
       onClose();
@@ -433,7 +477,26 @@ export default function MedicineFormModal({
 
   const handleDelete = async () => {
     try {
+      // İlacın tüm reminder'larını bul ve bildirimlerini iptal et
+      const reminders = await getAllReminders();
+      const medicineReminders = reminders.filter(
+        (r) => r.medicineId === formData.id
+      );
+
+      for (const reminder of medicineReminders) {
+        const notifId = await getNotificationId(reminder.id);
+        if (notifId) {
+          await Notifications.cancelScheduledNotificationAsync(notifId);
+          await removeNotificationId(reminder.id);
+        }
+      }
+
+      // İlacı ve ilgili reminder'ları sil
       await deleteMedicine(formData.id || "");
+
+      // Kalan bildirimleri yeniden planla
+      await scheduleRemindersFromDatabase();
+
       onClose();
     } catch (error) {
       console.error("Error deleting medicine and its reminders:", error);
@@ -550,6 +613,14 @@ export default function MedicineFormModal({
               value={formData.type || ""}
               options={MEDICINE_TYPES}
               onSelect={(value) => setFormData({ ...formData, type: value })}
+            />
+          </FormField>
+
+          <FormField label="İlaç Sınıfı">
+            <SelectButton
+              value={formData.class || ""}
+              options={MEDICINE_CLASS}
+              onSelect={(value) => setFormData({ ...formData, class: value })}
             />
           </FormField>
 
@@ -765,7 +836,8 @@ export default function MedicineFormModal({
                   { marginLeft: 8, color: styles.colors.text },
                 ]}
               >
-                {formData.schedule?.startDate}
+                {formData.schedule?.startDate ||
+                  new Date().toISOString().split("T")[0]}
               </Text>
             </TouchableOpacity>
           </FormField>
@@ -854,7 +926,12 @@ export default function MedicineFormModal({
 
         {showStartDatePicker && (
           <DateTimePicker
-            value={new Date(formData.schedule?.startDate || Date.now())}
+            value={
+              new Date(
+                formData.schedule?.startDate ||
+                  new Date().toISOString().split("T")[0]
+              )
+            }
             mode="date"
             display="default"
             onChange={(event, date) => handleDateChange(event, date, true)}

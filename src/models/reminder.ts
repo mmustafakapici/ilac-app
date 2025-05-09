@@ -1,4 +1,4 @@
-// models/reminder.ts
+// src/models/reminder.ts
 
 import { Medicine } from './medicine';
 

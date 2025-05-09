@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   // Renkler
-  colors: {
+  colors_default: {
     primary: '#4B95FF',
     secondary: '#6C757D',
     success: '#28A745',
@@ -41,7 +41,7 @@ export const styles = StyleSheet.create({
   },
 
 
-  colors_pastel: {
+  colors: {
     primary:   '#8E44AD',  // leylak
     secondary: '#F1948A',  // pastel pembe
     success:   '#82E0AA',  // pastel yeşil

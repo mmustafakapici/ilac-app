@@ -13,6 +13,11 @@ import { DEFAULT_REMINDER_TIMES } from "@/constants/user";
 import { styles } from "@/constants/theme";
 import { updateUser } from "@/services/dataService";
 import { useState, useCallback } from "react";
+import {
+  cancelAllSchedules,
+  scheduleRemindersFromDatabase,
+} from "@/services/reminderService";
+import { clearNotificationStore } from "@/services/notificationStore";
 
 interface NotificationSettingsModalProps {
   visible: boolean;
@@ -43,7 +48,18 @@ export default function NotificationSettingsModal({
           },
         };
         setFormData(updatedUser);
+
+        // Yeni offset kaydı
         await updateUser(updatedUser);
+
+        // Eski bildirimleri sil
+        await cancelAllSchedules();
+
+        // NotificationStore sıfırla
+        await clearNotificationStore();
+
+        // Yeni offset ile reminder'ları planla
+        await scheduleRemindersFromDatabase();
       } catch (error) {
         console.error("Bildirim tercihi güncellenirken hata:", error);
       }

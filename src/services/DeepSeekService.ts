@@ -2,6 +2,7 @@
 import { OPENROUTER_API_KEY } from '@env';
 import {
   MEDICINE_TYPES,
+  MEDICINE_CLASS,
   UNIT_OPTIONS,
   CONDITION_OPTIONS,
   FREQUENCY_OPTIONS,
@@ -18,7 +19,7 @@ export class DeepSeekService {
     const validUnits   = UNIT_OPTIONS.join(', ');
     const validConds   = CONDITION_OPTIONS.join(', ');
     const validFreqIds = FREQUENCY_OPTIONS.map(o => o.id).join(', ');
-    
+    const validClasses = MEDICINE_CLASS.join(', '); 
     // Saat presetlerini string haline getir
     const timePresets = Object.entries(TIME_PRESETS)
       .map(([key, times]) => `${key}: [${times.join(', ')}]`)
@@ -31,6 +32,7 @@ export class DeepSeekService {
     const prompt = `Aşağıdaki metinden ilaç bilgilerini çıkar ve JSON formatında döndür.
 
 - Geçerli türler: [${validTypes}]
+- Geçerli sınıflar: [${validClasses}]
 - Geçerli birimler: [${validUnits}]
 - Geçerli koşullar: [${validConds}]
 - Geçerli frekans kimlikleri: [${validFreqIds}]
@@ -44,6 +46,7 @@ JSON şablonu:
   "name": "string",
   "dosage": { "amount": number, "unit": "string" },
   "type": "string",
+  "class": "string",
   "usage": { "frequency": "string", "time": ["string"], "condition": "string" },
   "schedule": { "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD|null", "reminders": ["HH:MM"] },
   "notes": "string"

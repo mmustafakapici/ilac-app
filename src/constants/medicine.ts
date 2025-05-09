@@ -1,3 +1,5 @@
+// src/constants/medicine.ts
+
 import { Medicine } from '@/models/medicine';
 
 export const MEDICINE_TYPES = ['Tablet', 'Kapsül', 'Şurup', 'Sprey', 'Damla', 'İğne', 'Merhem', 'Gargara'];
@@ -32,3 +34,22 @@ export const CONDITION_OPTIONS = [
   'Fark etmez',
 ];
 
+
+export const MEDICINE_CLASS = [
+    'Antibiyotik',
+    'Ağrı kesici',
+    'Ateş düşürücü',
+    'Kas Gevşetici',
+    'Mide',
+    'Kalp',
+    
+    'Astım',
+    'Alerjik',
+    'Cilt',
+    'Sindirim',
+    'Gargara',
+    'Bulantı',
+    'öksürük',
+    'Boşaltım',
+    'Diğer',
+]

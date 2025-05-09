@@ -1,4 +1,4 @@
-// constants/reminder.ts
+// src/constants/reminder.ts
 
 
 import { ReminderStatus } from '@/models/reminder';
