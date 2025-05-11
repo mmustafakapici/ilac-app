@@ -8,17 +8,11 @@ import {
 } from "react-native";
 import * as Notifications from "expo-notifications";
 import {
-  Moon,
-  Sun,
-  Bell,
-  User as UserIcon,
-  CircleHelp as HelpCircle,
-  LogOut,
-  Play,
-  Trash2,
-  Calendar,
-  Clock,
-} from "lucide-react-native";
+  MaterialIcons,
+  MaterialCommunityIcons,
+  FontAwesome,
+  Feather,
+} from "@expo/vector-icons";
 import { useState, useEffect } from "react";
 import { User } from "@/models/user";
 import { getUser } from "@/services/dataService";
@@ -143,7 +137,7 @@ export default function ProfileScreen() {
             },
           ]}
         >
-          <UserIcon size={32} color="white" />
+          <FontAwesome name="user" size={32} color="white" />
         </View>
         <View style={{ marginLeft: styles.spacing.md }}>
           <Text style={[styles.typography.h1, { color: styles.colors.text }]}>
@@ -166,48 +160,57 @@ export default function ProfileScreen() {
         </Text>
 
         <ProfileOption
-          icon={<Play color={styles.colors.text} />}
+          icon={<MaterialIcons name="play-arrow" color={styles.colors.text} />}
           title="Bildirim Demosu"
           onPress={handleNotificationDemo}
         />
 
         <ProfileOption
-          icon={<Clock color={styles.colors.text} />}
+          icon={<MaterialIcons name="schedule" color={styles.colors.text} />}
           title="Tercih Bazlı Bildirim Demo"
           onPress={() => triggerPreferenceBasedNotification()}
         />
 
         <ProfileOption
-          icon={<Calendar color={styles.colors.text} />}
+          icon={
+            <MaterialCommunityIcons
+              name="calendar-month"
+              color={styles.colors.text}
+            />
+          }
           title="Planlanmış Bildirimler"
           onPress={() => setIsScheduledNotificationsModalVisible(true)}
         />
 
         <ProfileOption
-          icon={<UserIcon color={styles.colors.text} />}
+          icon={<FontAwesome name="user" color={styles.colors.text} />}
           title="Kişisel Bilgileri Düzenle"
           onPress={() => setIsEditModalVisible(true)}
         />
 
         <ProfileOption
-          icon={<Bell color={styles.colors.text} />}
+          icon={
+            <MaterialIcons name="notifications" color={styles.colors.text} />
+          }
           title="Bildirim Tercihleri"
           onPress={() => setIsNotificationModalVisible(true)}
         />
 
         <ProfileOption
-          icon={<Trash2 color={styles.colors.danger} />}
+          icon={<MaterialIcons name="delete" color={styles.colors.danger} />}
           title="Tüm Bildirimleri Temizle"
           onPress={cancelAllSchedules}
         />
 
         <ProfileOption
-          icon={<HelpCircle color={styles.colors.text} />}
+          icon={
+            <MaterialIcons name="help-outline" color={styles.colors.text} />
+          }
           title="Yardım ve Destek"
         />
 
         <ProfileOption
-          icon={<LogOut color={styles.colors.danger} />}
+          icon={<MaterialIcons name="logout" color={styles.colors.danger} />}
           title="Çıkış Yap"
         />
       </View>

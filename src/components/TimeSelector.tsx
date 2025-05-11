@@ -1,5 +1,6 @@
 import { View, TouchableOpacity, StyleSheet, Text } from "react-native";
-import { Sun, Coffee, Moon, Clock, Plus, Trash2 } from "lucide-react-native";
+import { Feather } from "@expo/vector-icons";
+import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { DEFAULT_TIMES } from "@/constants/medicine";
 import { styles } from "@/constants/theme";
 
@@ -37,7 +38,8 @@ export default function TimeSelector({
             },
           ]}
         >
-          <Sun
+          <Feather
+            name="sun"
             size={16}
             color={
               times.includes(DEFAULT_TIMES.morning)
@@ -72,7 +74,8 @@ export default function TimeSelector({
             },
           ]}
         >
-          <Coffee
+          <MaterialCommunityIcons
+            name="coffee"
             size={16}
             color={
               times.includes(DEFAULT_TIMES.noon) ? "white" : styles.colors.text
@@ -105,7 +108,8 @@ export default function TimeSelector({
             },
           ]}
         >
-          <Moon
+          <Feather
+            name="moon"
             size={16}
             color={
               times.includes(DEFAULT_TIMES.evening)
@@ -152,7 +156,8 @@ export default function TimeSelector({
                 },
               ]}
             >
-              <Clock
+              <MaterialIcons
+                name="schedule"
                 size={16}
                 color={
                   Object.values(DEFAULT_TIMES).includes(time)
@@ -181,7 +186,11 @@ export default function TimeSelector({
                 onPress={() => onTimeRemove(index)}
                 style={{ padding: 4 }}
               >
-                <Trash2 size={16} color={styles.colors.danger} />
+                <MaterialIcons
+                  name="delete"
+                  size={16}
+                  color={styles.colors.danger}
+                />
               </TouchableOpacity>
             )}
           </View>
@@ -198,7 +207,7 @@ export default function TimeSelector({
               },
             ]}
           >
-            <Plus size={16} color={styles.colors.primary} />
+            <MaterialIcons name="add" size={16} color={styles.colors.primary} />
             <Text
               style={[
                 styles.typography.body,

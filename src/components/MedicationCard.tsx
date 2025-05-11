@@ -1,12 +1,6 @@
 import { View, TouchableOpacity, StyleSheet, Text } from "react-native";
 import { Medicine } from "@/models/medicine";
-import {
-  Pill,
-  CreditCard as Edit3,
-  Clock,
-  Calendar,
-  CircleAlert as Info,
-} from "lucide-react-native";
+import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { styles } from "@/constants/theme";
 
 interface MedicationCardProps {
@@ -55,7 +49,8 @@ export default function MedicationCard({
         {/* İlaç Başlık Bölümü */}
         <View style={localStyles.medicationHeader}>
           <View style={localStyles.medicationTitleContainer}>
-            <Pill
+            <MaterialCommunityIcons
+              name="pill"
               size={20}
               color={styles.colors.primary}
               style={{ marginRight: 8 }}
@@ -124,7 +119,8 @@ export default function MedicationCard({
           <View style={[localStyles.detailItem, { flex: 0.6 }]}>
             <View style={localStyles.usageContainer}>
               <View style={localStyles.conditionContainer}>
-                <Info
+                <MaterialIcons
+                  name="info"
                   size={16}
                   color={styles.colors.text}
                   style={{ marginRight: 6 }}

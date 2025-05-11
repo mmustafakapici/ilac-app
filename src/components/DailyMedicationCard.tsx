@@ -2,7 +2,7 @@ import { StyleSheet, View, TouchableOpacity, Text } from "react-native";
 import { Medicine } from "@/models/medicine";
 import { Reminder, ReminderStatus } from "@/models/reminder";
 import { REMINDER_STATUS_COLORS } from "@/constants/reminder";
-import { Check, X } from "lucide-react-native";
+import { MaterialIcons } from '@expo/vector-icons';
 import { styles } from "@/constants/theme";
 
 interface DailyMedicationCardProps {
@@ -88,9 +88,9 @@ export default function DailyMedicationCard({
         ]}
       >
         {reminder.isTaken ? (
-          <Check size={20} color="white" />
+          <MaterialIcons name="check" size={20} color="white" />
         ) : (
-          <X size={20} color={styles.colors.text} />
+          <MaterialIcons name="close" size={20} color={styles.colors.text} />
         )}
       </TouchableOpacity>
     </View>

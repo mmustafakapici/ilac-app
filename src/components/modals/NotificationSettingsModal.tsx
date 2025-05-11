@@ -6,8 +6,9 @@ import {
   Switch,
   Text,
   StyleSheet,
+  SafeAreaView,
 } from "react-native";
-import { X } from "lucide-react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import { User } from "@/models/user";
 import { DEFAULT_REMINDER_TIMES } from "@/constants/user";
 import { styles } from "@/constants/theme";
@@ -74,129 +75,141 @@ export default function NotificationSettingsModal({
       transparent={true}
       onRequestClose={onClose}
     >
-      <View
-        style={[
-          localStyles.modalContainer,
-          { backgroundColor: styles.colors.background },
-        ]}
-      >
+      <SafeAreaView style={{ flex: 1 }}>
         <View
           style={[
-            localStyles.modalHeader,
-            { borderBottomColor: styles.colors.border },
+            localStyles.modalContainer,
+            { backgroundColor: styles.colors.background },
           ]}
         >
-          <Text style={[styles.typography.h1, { color: styles.colors.text }]}>
-            Bildirim Ayarları
-          </Text>
-          <TouchableOpacity onPress={onClose}>
-            <X color={styles.colors.text} size={24} />
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView style={localStyles.modalContent}>
-          <View style={localStyles.notificationSection}>
-            <Text
-              style={[
-                styles.typography.h2,
-                { marginBottom: 16, color: styles.colors.text },
-              ]}
-            >
-              Bildirim Türleri
+          <View
+            style={[
+              localStyles.modalHeader,
+              { borderBottomColor: styles.colors.border },
+            ]}
+          >
+            <Text style={[styles.typography.h1, { color: styles.colors.text }]}>
+              Bildirim Ayarları
             </Text>
-
-            <View style={localStyles.notificationOption}>
-              <Text
-                style={[styles.typography.body, { color: styles.colors.text }]}
-              >
-                Sesli Bildirim
-              </Text>
-              <Switch
-                value={formData.notificationPreferences.sound}
-                onValueChange={(value) =>
-                  handlePreferenceChange("sound", value)
-                }
-                trackColor={{ false: "#767577", true: styles.colors.primary }}
+            <TouchableOpacity onPress={onClose}>
+              <MaterialIcons
+                name="close"
+                color={styles.colors.text}
+                size={24}
               />
-            </View>
-
-            <View style={localStyles.notificationOption}>
-              <Text
-                style={[styles.typography.body, { color: styles.colors.text }]}
-              >
-                Titreşim
-              </Text>
-              <Switch
-                value={formData.notificationPreferences.vibration}
-                onValueChange={(value) =>
-                  handlePreferenceChange("vibration", value)
-                }
-                trackColor={{ false: "#767577", true: styles.colors.primary }}
-              />
-            </View>
+            </TouchableOpacity>
           </View>
 
-          <View style={localStyles.notificationSection}>
-            <Text
-              style={[
-                styles.typography.h2,
-                { marginBottom: 16, color: styles.colors.text },
-              ]}
-            >
-              Hatırlatma Zamanı
-            </Text>
+          <ScrollView style={localStyles.modalContent}>
+            <View style={localStyles.notificationSection}>
+              <Text
+                style={[
+                  styles.typography.h2,
+                  { marginBottom: 16, color: styles.colors.text },
+                ]}
+              >
+                Bildirim Türleri
+              </Text>
 
-            <View style={localStyles.timeOptions}>
-              {DEFAULT_REMINDER_TIMES.map((minutes) => (
-                <TouchableOpacity
-                  key={minutes}
+              <View style={localStyles.notificationOption}>
+                <Text
                   style={[
-                    localStyles.timeOption,
-                    {
-                      backgroundColor:
-                        formData.notificationPreferences.reminderTime ===
-                        minutes
-                          ? styles.colors.primary
-                          : styles.colors.background,
-                      borderColor: styles.colors.border,
-                    },
+                    styles.typography.body,
+                    { color: styles.colors.text },
                   ]}
-                  onPress={() =>
-                    handlePreferenceChange("reminderTime", minutes)
-                  }
                 >
-                  <Text
+                  Sesli Bildirim
+                </Text>
+                <Switch
+                  value={formData.notificationPreferences.sound}
+                  onValueChange={(value) =>
+                    handlePreferenceChange("sound", value)
+                  }
+                  trackColor={{ false: "#767577", true: styles.colors.primary }}
+                />
+              </View>
+
+              <View style={localStyles.notificationOption}>
+                <Text
+                  style={[
+                    styles.typography.body,
+                    { color: styles.colors.text },
+                  ]}
+                >
+                  Titreşim
+                </Text>
+                <Switch
+                  value={formData.notificationPreferences.vibration}
+                  onValueChange={(value) =>
+                    handlePreferenceChange("vibration", value)
+                  }
+                  trackColor={{ false: "#767577", true: styles.colors.primary }}
+                />
+              </View>
+            </View>
+
+            <View style={localStyles.notificationSection}>
+              <Text
+                style={[
+                  styles.typography.h2,
+                  { marginBottom: 16, color: styles.colors.text },
+                ]}
+              >
+                Hatırlatma Zamanı
+              </Text>
+
+              <View style={localStyles.timeOptions}>
+                {DEFAULT_REMINDER_TIMES.map((minutes) => (
+                  <TouchableOpacity
+                    key={minutes}
                     style={[
-                      styles.typography.body,
+                      localStyles.timeOption,
                       {
-                        color:
+                        backgroundColor:
                           formData.notificationPreferences.reminderTime ===
                           minutes
-                            ? "white"
-                            : styles.colors.text,
+                            ? styles.colors.primary
+                            : styles.colors.background,
+                        borderColor: styles.colors.border,
                       },
                     ]}
+                    onPress={() =>
+                      handlePreferenceChange("reminderTime", minutes)
+                    }
                   >
-                    {minutes} dk önce
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <Text
+                      style={[
+                        styles.typography.body,
+                        {
+                          color:
+                            formData.notificationPreferences.reminderTime ===
+                            minutes
+                              ? "white"
+                              : styles.colors.text,
+                        },
+                      ]}
+                    >
+                      {minutes} dk önce
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
-          </View>
 
-          <TouchableOpacity
-            style={[
-              localStyles.saveButton,
-              { backgroundColor: styles.colors.primary },
-            ]}
-            onPress={onClose}
-          >
-            <Text style={[styles.typography.body, { color: "white" }]}>
-              Kaydet
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
+            <TouchableOpacity
+              style={[
+                localStyles.saveButton,
+                { backgroundColor: styles.colors.primary },
+              ]}
+              onPress={onClose}
+            >
+              <Text style={[styles.typography.body, { color: "white" }]}>
+                Kaydet
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </SafeAreaView>
     </Modal>
   );
 }

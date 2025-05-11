@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.mmustafa_kapici.myapp'
+    namespace 'com.mmustafa_kapici.dosemate'
     defaultConfig {
-        applicationId 'com.mmustafa_kapici.myapp'
+        applicationId 'com.mmustafa_kapici.dosemate'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

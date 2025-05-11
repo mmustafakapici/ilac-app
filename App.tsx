@@ -7,7 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import EditProfileModal from "@/components/modals/EditProfileModal";
 import { getUser } from "@/services/dataService";
 import { User } from "@/models/user";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { View } from "react-native";
 import { styles } from "@/constants/theme";
 
@@ -45,7 +45,7 @@ export default function App() {
     <SafeAreaProvider>
       <PermissionProvider>
         <NavigationContainer>
-          <View style={{ flex: 1, backgroundColor: styles.colors.background }}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: "#FBFCFC" }}>
             <TabNavigator />
             <StatusBar style="auto" />
             {user && (
@@ -55,7 +55,7 @@ export default function App() {
                 user={user}
               />
             )}
-          </View>
+          </SafeAreaView>
         </NavigationContainer>
       </PermissionProvider>
     </SafeAreaProvider>

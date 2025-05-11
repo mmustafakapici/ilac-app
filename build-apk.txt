@@ -1,0 +1,19 @@
+
+
+del android\app\build\outputs\apk\release\app-release.apk 
+
+
+npx expo prebuild
+
+cd android
+
+./gradlew assembleRelease
+
+cd app/build/outputs/apk/release
+
+adb connect 192.168.1.24:5555
+
+adb install app-release.apk 
+
+
+

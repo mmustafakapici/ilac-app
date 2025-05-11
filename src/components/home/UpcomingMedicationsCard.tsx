@@ -1,5 +1,5 @@
 import { StyleSheet, View, ScrollView, Text } from "react-native";
-import { Clock } from "lucide-react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import { Reminder } from "@/models/reminder";
 import { styles } from "@/constants/theme";
 
@@ -41,7 +41,11 @@ export default function UpcomingMedicationsCard({
             ]}
           >
             <View style={localStyles.timeContainer}>
-              <Clock size={16} color={styles.colors.primary} />
+              <MaterialIcons
+                name="schedule"
+                size={16}
+                color={styles.colors.primary}
+              />
               <Text
                 style={[
                   styles.typography.body,

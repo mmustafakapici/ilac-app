@@ -80,7 +80,7 @@ export async function scheduleRemindersFromDatabase(): Promise<void> {
                     type: 'daily',
                     hour,
                     minute,
-                    repeats: true
+                    repeats: true,
                 }
             });
 

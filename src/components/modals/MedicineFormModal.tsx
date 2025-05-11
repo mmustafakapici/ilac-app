@@ -10,9 +10,10 @@ import {
   Text,
   ActivityIndicator,
 } from "react-native";
-import { X, Calendar, Camera, Image as ImageIcon } from "lucide-react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Medicine } from "@/models/medicine";
 import {
   MEDICINE_TYPES,
@@ -31,6 +32,7 @@ import {
   addReminder,
   deleteMedicine,
   updateMedicine,
+  getAllReminders,
 } from "@/services/dataService";
 import { generateId } from "@/utils/idUtils";
 import {
@@ -45,6 +47,7 @@ import {
   getNotificationId,
   removeNotificationId,
 } from "@/services/notificationStore";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface MedicineFormModalProps {
   visible: boolean;
@@ -157,6 +160,11 @@ export default function MedicineFormModal({
   const [isProcessing, setIsProcessing] = useState(false);
   const [detectedMedicine, setDetectedMedicine] =
     useState<Partial<Medicine> | null>(null);
+  const [pickerMode, setPickerMode] = useState<"date" | "time" | null>(null);
+  const [pickerTarget, setPickerTarget] = useState<
+    "start" | "end" | "time" | null
+  >(null);
+  const [tempDate, setTempDate] = useState<Date>(new Date());
 
   const pickImage = async (useCamera: boolean) => {
     try {
@@ -504,6 +512,85 @@ export default function MedicineFormModal({
     }
   };
 
+  const openTimePicker = (index: number) => {
+    setCurrentTimeIndex(index);
+    setPickerMode("time");
+    setPickerTarget("time");
+    setTempDate(new Date());
+  };
+
+  const openStartDatePicker = () => {
+    setPickerMode("date");
+    setPickerTarget("start");
+    setTempDate(new Date(formData.schedule?.startDate || new Date()));
+  };
+
+  const openEndDatePicker = () => {
+    setPickerMode("date");
+    setPickerTarget("end");
+    setTempDate(new Date(formData.schedule?.endDate || new Date()));
+  };
+
+  const handlePickerConfirm = (date: Date) => {
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    if (pickerTarget === "time") {
+      const timeString = date.toLocaleTimeString("tr-TR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: getDeviceTimezone(),
+      });
+      const newTimes = [...(formData.usage?.time || [])];
+      newTimes[currentTimeIndex] = timeString;
+      setFormData({
+        ...formData,
+        usage: {
+          ...formData.usage!,
+          time: newTimes,
+        },
+      });
+    } else if (pickerTarget === "start") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const selectedDate = new Date(date);
+      selectedDate.setHours(0, 0, 0, 0);
+      let finalDate = selectedDate;
+      if (selectedDate < today) finalDate = today;
+      const dateString = `${finalDate.getFullYear()}-${pad(
+        finalDate.getMonth() + 1
+      )}-${pad(finalDate.getDate())}`;
+      setFormData({
+        ...formData,
+        schedule: {
+          ...formData.schedule,
+          startDate: dateString,
+          endDate: "",
+        },
+      });
+    } else if (pickerTarget === "end") {
+      const pad = (n: number) => n.toString().padStart(2, "0");
+      const finalDate = new Date(date);
+      finalDate.setHours(0, 0, 0, 0);
+      const dateString = `${finalDate.getFullYear()}-${pad(
+        finalDate.getMonth() + 1
+      )}-${pad(finalDate.getDate())}`;
+      setFormData({
+        ...formData,
+        schedule: {
+          ...formData.schedule,
+          endDate: dateString,
+        },
+      });
+    }
+    setPickerMode(null);
+    setPickerTarget(null);
+  };
+
+  const handlePickerCancel = () => {
+    setPickerMode(null);
+    setPickerTarget(null);
+  };
+
   return (
     <Modal
       visible={visible}
@@ -511,211 +598,185 @@ export default function MedicineFormModal({
       transparent={false}
       onRequestClose={onClose}
     >
-      <View
-        style={[
-          localStyles.modalContainer,
-          { backgroundColor: styles.colors.background },
-        ]}
-      >
+      <SafeAreaView style={{ flex: 1 }}>
         <View
           style={[
-            localStyles.modalHeader,
-            { borderBottomColor: styles.colors.border },
+            localStyles.modalContainer,
+            { backgroundColor: styles.colors.background },
           ]}
         >
-          <Text style={[styles.typography.h1, { color: styles.colors.text }]}>
-            {isEditMode ? "İlaç Düzenle" : "Yeni İlaç Ekle"}
-          </Text>
-          <TouchableOpacity onPress={onClose}>
-            <X color={styles.colors.text} size={24} />
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView style={localStyles.modalContent}>
-          {detectedMedicine && (
-            <DetectedMedicineInfo
-              medicine={detectedMedicine}
-              onUse={handleUseDetected}
-            />
-          )}
-
-          <View style={localStyles.imagePickerContainer}>
-            <TouchableOpacity
-              style={[
-                localStyles.imagePickerButton,
-                { backgroundColor: styles.colors.primary },
-              ]}
-              onPress={() => pickImage(false)}
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <>
-                  <ImageIcon size={24} color="white" />
-                  <Text
-                    style={[
-                      styles.typography.body,
-                      { color: "white", marginLeft: 8 },
-                    ]}
-                  >
-                    Galeriden Seç
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                localStyles.imagePickerButton,
-                { backgroundColor: styles.colors.primary },
-              ]}
-              onPress={takePhoto}
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <>
-                  <Camera size={24} color="white" />
-                  <Text
-                    style={[
-                      styles.typography.body,
-                      { color: "white", marginLeft: 8 },
-                    ]}
-                  >
-                    Fotoğraf Çek
-                  </Text>
-                </>
-              )}
+          <View
+            style={[
+              localStyles.modalHeader,
+              { borderBottomColor: styles.colors.border },
+            ]}
+          >
+            <Text style={[styles.typography.h1, { color: styles.colors.text }]}>
+              {isEditMode ? "İlaç Düzenle" : "Yeni İlaç Ekle"}
+            </Text>
+            <TouchableOpacity onPress={onClose}>
+              <MaterialIcons
+                name="close"
+                color={styles.colors.text}
+                size={24}
+              />
             </TouchableOpacity>
           </View>
 
-          <FormField label="İlaç Adı">
-            <TextInput
-              value={formData.name}
-              onChangeText={(text) => setFormData({ ...formData, name: text })}
-              style={[
-                localStyles.input,
-                {
-                  backgroundColor: styles.colors.card,
-                  borderColor: styles.colors.border,
-                  color: styles.colors.text,
-                },
-              ]}
-              placeholderTextColor={styles.colors.tabBarInactive}
-              placeholder="İlaç adını girin"
-            />
-          </FormField>
+          <ScrollView style={localStyles.modalContent}>
+            {detectedMedicine && (
+              <DetectedMedicineInfo
+                medicine={detectedMedicine}
+                onUse={handleUseDetected}
+              />
+            )}
 
-          <FormField label="İlaç Türü">
-            <SelectButton
-              value={formData.type || ""}
-              options={MEDICINE_TYPES}
-              onSelect={(value) => setFormData({ ...formData, type: value })}
-            />
-          </FormField>
+            <View style={localStyles.imagePickerContainer}>
+              <TouchableOpacity
+                style={[
+                  localStyles.imagePickerButton,
+                  { backgroundColor: styles.colors.primary },
+                ]}
+                onPress={() => pickImage(false)}
+                disabled={isProcessing}
+              >
+                {isProcessing ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <>
+                    <MaterialIcons name="image" size={24} color="white" />
+                    <Text
+                      style={[
+                        styles.typography.body,
+                        { color: "white", marginLeft: 8 },
+                      ]}
+                    >
+                      Galeriden Seç
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
 
-          <FormField label="İlaç Sınıfı">
-            <SelectButton
-              value={formData.class || ""}
-              options={MEDICINE_CLASS}
-              onSelect={(value) => setFormData({ ...formData, class: value })}
-            />
-          </FormField>
+              <TouchableOpacity
+                style={[
+                  localStyles.imagePickerButton,
+                  { backgroundColor: styles.colors.primary },
+                ]}
+                onPress={takePhoto}
+                disabled={isProcessing}
+              >
+                {isProcessing ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <>
+                    <MaterialIcons
+                      name="photo-camera"
+                      size={24}
+                      color="white"
+                    />
+                    <Text
+                      style={[
+                        styles.typography.body,
+                        { color: "white", marginLeft: 8 },
+                      ]}
+                    >
+                      Fotoğraf Çek
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
 
-          <FormField label="Doz">
-            <View style={localStyles.dosageContainer}>
+            <FormField label="İlaç Adı">
               <TextInput
-                value={formData.dosage?.amount.toString()}
+                value={formData.name}
                 onChangeText={(text) =>
-                  setFormData({
-                    ...formData,
-                    dosage: {
-                      ...formData.dosage!,
-                      amount: parseInt(text) || 0,
-                    },
-                  })
+                  setFormData({ ...formData, name: text })
                 }
-                keyboardType="numeric"
                 style={[
                   localStyles.input,
-                  localStyles.dosageInput,
                   {
                     backgroundColor: styles.colors.card,
                     borderColor: styles.colors.border,
                     color: styles.colors.text,
                   },
                 ]}
+                placeholderTextColor={styles.colors.tabBarInactive}
+                placeholder="İlaç adını girin"
               />
-              <View style={{ flex: 1 }}>
-                <SelectButton
-                  value={formData.dosage?.unit || ""}
-                  options={UNIT_OPTIONS}
-                  onSelect={(value) =>
+            </FormField>
+
+            <FormField label="İlaç Türü">
+              <SelectButton
+                value={formData.type || ""}
+                options={MEDICINE_TYPES}
+                onSelect={(value) => setFormData({ ...formData, type: value })}
+              />
+            </FormField>
+
+            <FormField label="İlaç Sınıfı">
+              <SelectButton
+                value={formData.class || ""}
+                options={MEDICINE_CLASS}
+                onSelect={(value) => setFormData({ ...formData, class: value })}
+              />
+            </FormField>
+
+            <FormField label="Doz">
+              <View style={localStyles.dosageContainer}>
+                <TextInput
+                  value={formData.dosage?.amount.toString()}
+                  onChangeText={(text) =>
                     setFormData({
                       ...formData,
-                      dosage: { ...formData.dosage!, unit: value },
+                      dosage: {
+                        ...formData.dosage!,
+                        amount: parseInt(text) || 0,
+                      },
                     })
                   }
+                  keyboardType="numeric"
+                  style={[
+                    localStyles.input,
+                    localStyles.dosageInput,
+                    {
+                      backgroundColor: styles.colors.card,
+                      borderColor: styles.colors.border,
+                      color: styles.colors.text,
+                    },
+                  ]}
                 />
+                <View style={{ flex: 1 }}>
+                  <SelectButton
+                    value={formData.dosage?.unit || ""}
+                    options={UNIT_OPTIONS}
+                    onSelect={(value) =>
+                      setFormData({
+                        ...formData,
+                        dosage: { ...formData.dosage!, unit: value },
+                      })
+                    }
+                  />
+                </View>
               </View>
-            </View>
-          </FormField>
+            </FormField>
 
-          <FormField label="Kullanım Sıklığı">
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={{ marginBottom: 12 }}
-            >
-              <View style={localStyles.selectContainer}>
-                {FREQUENCY_OPTIONS.map((frequency) => (
-                  <TouchableOpacity
-                    key={frequency.id}
-                    onPress={() => handleFrequencyChange(frequency)}
-                    style={[
-                      localStyles.selectButton,
-                      {
-                        backgroundColor:
-                          selectedFrequency.id === frequency.id
-                            ? styles.colors.primary
-                            : styles.colors.card,
-                        borderColor: styles.colors.border,
-                        borderRadius: styles.borderRadius.sm,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.typography.body,
-                        {
-                          color:
-                            selectedFrequency.id === frequency.id
-                              ? "white"
-                              : styles.colors.text,
-                        },
-                      ]}
-                    >
-                      {frequency.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-
-            {selectedFrequency.subOptions && (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <FormField label="Kullanım Sıklığı">
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={{ marginBottom: 12 }}
+              >
                 <View style={localStyles.selectContainer}>
-                  {selectedFrequency.subOptions.map((subOption) => (
+                  {FREQUENCY_OPTIONS.map((frequency) => (
                     <TouchableOpacity
-                      key={subOption}
-                      onPress={() => handleSubOptionChange(subOption)}
+                      key={frequency.id}
+                      onPress={() => handleFrequencyChange(frequency)}
                       style={[
                         localStyles.selectButton,
                         {
                           backgroundColor:
-                            selectedSubOption === subOption
+                            selectedFrequency.id === frequency.id
                               ? styles.colors.primary
                               : styles.colors.card,
                           borderColor: styles.colors.border,
@@ -728,225 +789,250 @@ export default function MedicineFormModal({
                           styles.typography.body,
                           {
                             color:
-                              selectedSubOption === subOption
+                              selectedFrequency.id === frequency.id
                                 ? "white"
                                 : styles.colors.text,
                           },
                         ]}
                       >
-                        {subOption}
+                        {frequency.label}
                       </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               </ScrollView>
-            )}
-          </FormField>
 
-          <FormField label="Kullanım Zamanı">
-            <TimeSelector
-              times={formData.usage?.time || []}
-              selectedFrequency={selectedFrequency}
-              onTimeSelect={(time, index) => {
-                const newTimes = [...(formData.usage?.time || [])];
-                newTimes[index] = time;
-                setFormData({
-                  ...formData,
-                  usage: {
-                    ...formData.usage!,
-                    time: newTimes,
-                  },
-                });
-              }}
-              onTimeAdd={() => {
-                if (formData.usage?.time) {
+              {selectedFrequency.subOptions && (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View style={localStyles.selectContainer}>
+                    {selectedFrequency.subOptions.map((subOption) => (
+                      <TouchableOpacity
+                        key={subOption}
+                        onPress={() => handleSubOptionChange(subOption)}
+                        style={[
+                          localStyles.selectButton,
+                          {
+                            backgroundColor:
+                              selectedSubOption === subOption
+                                ? styles.colors.primary
+                                : styles.colors.card,
+                            borderColor: styles.colors.border,
+                            borderRadius: styles.borderRadius.sm,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.typography.body,
+                            {
+                              color:
+                                selectedSubOption === subOption
+                                  ? "white"
+                                  : styles.colors.text,
+                            },
+                          ]}
+                        >
+                          {subOption}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </ScrollView>
+              )}
+            </FormField>
+
+            <FormField label="Kullanım Zamanı">
+              <TimeSelector
+                times={formData.usage?.time || []}
+                selectedFrequency={selectedFrequency}
+                onTimeSelect={(time, index) => {
+                  const newTimes = [...(formData.usage?.time || [])];
+                  newTimes[index] = time;
                   setFormData({
                     ...formData,
                     usage: {
-                      ...formData.usage,
-                      time: [...formData.usage.time, "12:00"],
-                    },
-                  });
-                }
-              }}
-              onTimeRemove={(index) => {
-                const newTimes =
-                  formData.usage?.time.filter((_, i) => i !== index) || [];
-                setFormData({
-                  ...formData,
-                  usage: {
-                    ...formData.usage!,
-                    time: newTimes,
-                  },
-                });
-              }}
-              onDefaultTimeSelect={(timeOfDay) => {
-                if (formData.usage?.time) {
-                  const newTimes = [...formData.usage.time];
-                  newTimes[currentTimeIndex] =
-                    timeOfDay === "morning"
-                      ? "08:00"
-                      : timeOfDay === "noon"
-                      ? "14:00"
-                      : "20:00";
-                  setFormData({
-                    ...formData,
-                    usage: {
-                      ...formData.usage,
+                      ...formData.usage!,
                       time: newTimes,
                     },
                   });
+                }}
+                onTimeAdd={() => {
+                  if (formData.usage?.time) {
+                    setFormData({
+                      ...formData,
+                      usage: {
+                        ...formData.usage,
+                        time: [...formData.usage.time, "12:00"],
+                      },
+                    });
+                  }
+                }}
+                onTimeRemove={(index) => {
+                  const newTimes =
+                    formData.usage?.time.filter((_, i) => i !== index) || [];
+                  setFormData({
+                    ...formData,
+                    usage: {
+                      ...formData.usage!,
+                      time: newTimes,
+                    },
+                  });
+                }}
+                onDefaultTimeSelect={(timeOfDay) => {
+                  if (formData.usage?.time) {
+                    const newTimes = [...formData.usage.time];
+                    newTimes[currentTimeIndex] =
+                      timeOfDay === "morning"
+                        ? "08:00"
+                        : timeOfDay === "noon"
+                        ? "14:00"
+                        : "20:00";
+                    setFormData({
+                      ...formData,
+                      usage: {
+                        ...formData.usage,
+                        time: newTimes,
+                      },
+                    });
+                  }
+                }}
+                onShowTimePicker={openTimePicker}
+              />
+            </FormField>
+
+            <FormField label="Kullanım Şekli">
+              <SelectButton
+                value={formData.usage?.condition || ""}
+                options={CONDITION_OPTIONS}
+                onSelect={(value) =>
+                  setFormData({
+                    ...formData,
+                    usage: { ...formData.usage!, condition: value },
+                  })
                 }
-              }}
-              onShowTimePicker={(index) => {
-                setCurrentTimeIndex(index);
-                setShowTimePicker(true);
-              }}
-            />
-          </FormField>
+              />
+            </FormField>
 
-          <FormField label="Kullanım Şekli">
-            <SelectButton
-              value={formData.usage?.condition || ""}
-              options={CONDITION_OPTIONS}
-              onSelect={(value) =>
-                setFormData({
-                  ...formData,
-                  usage: { ...formData.usage!, condition: value },
-                })
-              }
-            />
-          </FormField>
-
-          <FormField label="Başlangıç Tarihi">
-            <TouchableOpacity
-              onPress={() => setShowStartDatePicker(true)}
-              style={[
-                localStyles.dateButton,
-                {
-                  backgroundColor: styles.colors.card,
-                  borderColor: styles.colors.border,
-                },
-              ]}
-            >
-              <Calendar size={16} color={styles.colors.text} />
-              <Text
-                style={[
-                  styles.typography.body,
-                  { marginLeft: 8, color: styles.colors.text },
-                ]}
-              >
-                {formData.schedule?.startDate ||
-                  new Date().toISOString().split("T")[0]}
-              </Text>
-            </TouchableOpacity>
-          </FormField>
-
-          <FormField label="Bitiş Tarihi (Opsiyonel)">
-            <TouchableOpacity
-              onPress={() => setShowEndDatePicker(true)}
-              style={[
-                localStyles.dateButton,
-                {
-                  backgroundColor: styles.colors.card,
-                  borderColor: styles.colors.border,
-                },
-              ]}
-            >
-              <Calendar size={16} color={styles.colors.text} />
-              <Text
-                style={[
-                  styles.typography.body,
-                  { marginLeft: 8, color: styles.colors.text },
-                ]}
-              >
-                {formData.schedule?.endDate || "Seçiniz"}
-              </Text>
-            </TouchableOpacity>
-          </FormField>
-
-          <FormField label="Notlar (Opsiyonel)">
-            <TextInput
-              value={formData.notes}
-              onChangeText={(text) => setFormData({ ...formData, notes: text })}
-              multiline
-              numberOfLines={4}
-              style={[
-                localStyles.input,
-                localStyles.textArea,
-                {
-                  backgroundColor: styles.colors.card,
-                  borderColor: styles.colors.border,
-                  color: styles.colors.text,
-                },
-              ]}
-              placeholderTextColor={styles.colors.tabBarInactive}
-              placeholder="İlaç ile ilgili notlarınızı buraya yazabilirsiniz"
-            />
-          </FormField>
-
-          <View style={localStyles.buttonContainer}>
-            <TouchableOpacity
-              style={[
-                localStyles.submitButton,
-                { backgroundColor: styles.colors.primary },
-              ]}
-              onPress={handleSave}
-            >
-              <Text style={[styles.typography.body, { color: "white" }]}>
-                {isEditMode ? "Güncelle" : "Kaydet"}
-              </Text>
-            </TouchableOpacity>
-
-            {isEditMode && (
+            <FormField label="Başlangıç Tarihi">
               <TouchableOpacity
+                onPress={openStartDatePicker}
                 style={[
-                  localStyles.deleteButton,
-                  { backgroundColor: styles.colors.danger },
+                  localStyles.dateButton,
+                  {
+                    backgroundColor: styles.colors.card,
+                    borderColor: styles.colors.border,
+                  },
                 ]}
-                onPress={handleDelete}
               >
-                <Text style={[styles.typography.body, { color: "white" }]}>
-                  İlacı Sil
+                <MaterialIcons
+                  name="calendar-today"
+                  size={16}
+                  color={styles.colors.text}
+                />
+                <Text
+                  style={[
+                    styles.typography.body,
+                    { marginLeft: 8, color: styles.colors.text },
+                  ]}
+                >
+                  {formData.schedule?.startDate ||
+                    new Date().toISOString().split("T")[0]}
                 </Text>
               </TouchableOpacity>
-            )}
-          </View>
-        </ScrollView>
+            </FormField>
 
-        {showTimePicker && (
-          <DateTimePicker
-            value={new Date()}
-            mode="time"
-            is24Hour={true}
-            display="default"
-            onChange={handleTimeChange}
-          />
-        )}
+            <FormField label="Bitiş Tarihi (Opsiyonel)">
+              <TouchableOpacity
+                onPress={openEndDatePicker}
+                style={[
+                  localStyles.dateButton,
+                  {
+                    backgroundColor: styles.colors.card,
+                    borderColor: styles.colors.border,
+                  },
+                ]}
+              >
+                <MaterialIcons
+                  name="calendar-today"
+                  size={16}
+                  color={styles.colors.text}
+                />
+                <Text
+                  style={[
+                    styles.typography.body,
+                    { marginLeft: 8, color: styles.colors.text },
+                  ]}
+                >
+                  {formData.schedule?.endDate || "Seçiniz"}
+                </Text>
+              </TouchableOpacity>
+            </FormField>
 
-        {showStartDatePicker && (
-          <DateTimePicker
-            value={
-              new Date(
-                formData.schedule?.startDate ||
-                  new Date().toISOString().split("T")[0]
-              )
-            }
-            mode="date"
-            display="default"
-            onChange={(event, date) => handleDateChange(event, date, true)}
-          />
-        )}
+            <FormField label="Notlar (Opsiyonel)">
+              <TextInput
+                value={formData.notes}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, notes: text })
+                }
+                multiline
+                numberOfLines={4}
+                style={[
+                  localStyles.input,
+                  localStyles.textArea,
+                  {
+                    backgroundColor: styles.colors.card,
+                    borderColor: styles.colors.border,
+                    color: styles.colors.text,
+                  },
+                ]}
+                placeholderTextColor={styles.colors.tabBarInactive}
+                placeholder="İlaç ile ilgili notlarınızı buraya yazabilirsiniz"
+              />
+            </FormField>
 
-        {showEndDatePicker && (
-          <DateTimePicker
-            value={new Date(formData.schedule?.endDate || Date.now())}
-            mode="date"
-            display="default"
-            onChange={(event, date) => handleDateChange(event, date, false)}
+            <View style={localStyles.buttonContainer}>
+              <TouchableOpacity
+                style={[
+                  localStyles.submitButton,
+                  { backgroundColor: styles.colors.primary },
+                ]}
+                onPress={handleSave}
+              >
+                <Text style={[styles.typography.body, { color: "white" }]}>
+                  {isEditMode ? "Güncelle" : "Kaydet"}
+                </Text>
+              </TouchableOpacity>
+
+              {isEditMode && (
+                <TouchableOpacity
+                  style={[
+                    localStyles.deleteButton,
+                    { backgroundColor: styles.colors.danger },
+                  ]}
+                  onPress={handleDelete}
+                >
+                  <Text style={[styles.typography.body, { color: "white" }]}>
+                    İlacı Sil
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </ScrollView>
+
+          <DateTimePickerModal
+            isVisible={!!pickerMode}
+            mode={pickerMode || "date"}
+            date={tempDate}
+            onConfirm={handlePickerConfirm}
+            onCancel={handlePickerCancel}
+            locale="tr-TR"
+            headerTextIOS={pickerTarget === "time" ? "Saat Seç" : "Tarih Seç"}
+            cancelTextIOS="İptal"
+            confirmTextIOS="Tamam"
+            display="spinner"
           />
-        )}
-      </View>
+        </View>
+      </SafeAreaView>
     </Modal>
   );
 }

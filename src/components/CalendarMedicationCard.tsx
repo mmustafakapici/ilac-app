@@ -1,6 +1,6 @@
 import { StyleSheet, View, Text } from "react-native";
 import { Medicine } from "@/models/medicine";
-import { Clock } from "lucide-react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import { styles } from "@/constants/theme";
 const themeColors = styles.colors;
 
@@ -74,7 +74,11 @@ export default function CalendarMedicationCard({
           : []
         ).map((reminder, index) => (
           <View key={index} style={localStyles.timeChip}>
-            <Clock size={16} color={themeColors.textSecondary} />
+            <MaterialIcons
+              name="schedule"
+              size={16}
+              color={themeColors.textSecondary}
+            />
             <Text style={[localStyles.timeText, { color: themeColors.text }]}>
               {reminder.time}
             </Text>

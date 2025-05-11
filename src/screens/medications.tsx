@@ -7,7 +7,7 @@ import {
   Text,
   RefreshControl,
 } from "react-native";
-import { Plus } from "lucide-react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import { useState, useEffect, useCallback } from "react";
 import { useIsFocused } from "@react-navigation/native";
 import { Medicine } from "@/models/medicine";
@@ -182,7 +182,7 @@ export default function MedicationsScreen() {
             { backgroundColor: styles.colors.primary },
           ]}
         >
-          <Plus color="white" size={24} />
+          <MaterialIcons name="add" color="white" size={24} />
         </TouchableOpacity>
       </View>
 

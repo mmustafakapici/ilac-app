@@ -1,5 +1,5 @@
 import { StyleSheet, View, Text } from "react-native";
-import { User } from "lucide-react-native";
+import { FontAwesome } from "@expo/vector-icons";
 import { styles } from "@/constants/theme";
 
 interface WelcomeCardProps {
@@ -26,7 +26,7 @@ export default function WelcomeCard({ userName, date }: WelcomeCardProps) {
               { backgroundColor: styles.colors.primary },
             ]}
           >
-            <User size={24} color="white" />
+            <FontAwesome name="user" size={24} color="white" />
           </View>
           <View style={{ marginLeft: styles.spacing.md }}>
             <Text style={[styles.typography.h2, { color: styles.colors.text }]}>

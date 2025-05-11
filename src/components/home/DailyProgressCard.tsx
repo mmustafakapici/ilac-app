@@ -1,9 +1,5 @@
 import { StyleSheet, View, Text } from "react-native";
-import {
-  CircleCheck as CheckCircle2,
-  Circle as XCircle,
-  Clock,
-} from "lucide-react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import { styles } from "@/constants/theme";
 
 interface DailyProgressCardProps {
@@ -55,7 +51,11 @@ export default function DailyProgressCard({
       <View style={localStyles.statsContainer}>
         <View style={localStyles.statItem}>
           <View style={localStyles.statHeader}>
-            <CheckCircle2 size={16} color={styles.colors.success} />
+            <MaterialIcons
+              name="check-circle"
+              size={16}
+              color={styles.colors.success}
+            />
             <Text
               style={[
                 styles.typography.body,
@@ -77,7 +77,11 @@ export default function DailyProgressCard({
 
         <View style={localStyles.statItem}>
           <View style={localStyles.statHeader}>
-            <XCircle size={16} color={styles.colors.danger} />
+            <MaterialIcons
+              name="cancel"
+              size={16}
+              color={styles.colors.danger}
+            />
             <Text
               style={[
                 styles.typography.body,
@@ -99,7 +103,11 @@ export default function DailyProgressCard({
 
         <View style={localStyles.statItem}>
           <View style={localStyles.statHeader}>
-            <Clock size={16} color={styles.colors.warning} />
+            <MaterialIcons
+              name="schedule"
+              size={16}
+              color={styles.colors.warning}
+            />
             <Text
               style={[
                 styles.typography.body,

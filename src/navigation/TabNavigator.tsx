@@ -1,11 +1,5 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import {
-  House as Home,
-  Pill,
-  Calendar,
-  Clock,
-  User,
-} from "lucide-react-native";
+import { MaterialIcons, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
 import { styles } from "@/constants/theme";
 
 const Tab = createBottomTabNavigator();
@@ -44,7 +38,7 @@ export default function TabNavigator() {
         component={require("@/screens/index").default}
         options={{
           title: "Genel",
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <MaterialIcons name="dashboard" size={size} color={color} />,
           headerTitle: "Dashboard",
           headerShown: false,
         }}
@@ -54,7 +48,7 @@ export default function TabNavigator() {
         component={require("@/screens/medications").default}
         options={{
           title: "İlaçlarım",
-          tabBarIcon: ({ color, size }) => <Pill size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="pill" size={size} color={color} />,
           headerTitle: "İlaçlarım",
           headerShown: false,
         }}
@@ -64,7 +58,7 @@ export default function TabNavigator() {
         component={require("@/screens/daily").default}
         options={{
           title: "Günlük",
-          tabBarIcon: ({ color, size }) => <Clock size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <MaterialIcons name="schedule" size={size} color={color} />,
           headerTitle: "Günlük Programım",
           headerShown: false,
         }}
@@ -75,7 +69,7 @@ export default function TabNavigator() {
         options={{
           title: "Takvim",
           tabBarIcon: ({ color, size }) => (
-            <Calendar size={size} color={color} />
+            <MaterialCommunityIcons name="calendar-month" size={size} color={color} />
           ),
           headerTitle: "İlaç Takvimi",
           headerShown: false,
@@ -86,7 +80,7 @@ export default function TabNavigator() {
         component={require("@/screens/profile").default}
         options={{
           title: "Profil",
-          tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <FontAwesome name="user" size={size} color={color} />,
           headerTitle: "Profil",
           headerShown: false,
         }}

@@ -6,8 +6,9 @@ import {
   ScrollView,
   Text,
   StyleSheet,
+  SafeAreaView,
 } from "react-native";
-import { X } from "lucide-react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import { User } from "@/models/user";
 import { styles } from "@/constants/theme";
 import { useCallback, useMemo, useState } from "react";
@@ -65,152 +66,158 @@ export default function EditProfileModal({
       transparent={true}
       onRequestClose={onClose}
     >
-      <View
-        style={[
-          localStyles.modalContainer,
-          { backgroundColor: styles.colors.background },
-        ]}
-      >
+      <SafeAreaView style={{ flex: 1 }}>
         <View
           style={[
-            localStyles.modalHeader,
-            { borderBottomColor: styles.colors.border },
+            localStyles.modalContainer,
+            { backgroundColor: styles.colors.background },
           ]}
         >
-          <Text style={[styles.typography.h1, { color: styles.colors.text }]}>
-            Kişisel Bilgiler
-          </Text>
-          <TouchableOpacity onPress={onClose}>
-            <X color={styles.colors.text} size={24} />
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView style={localStyles.modalContent}>
-          <View style={localStyles.inputGroup}>
-            <Text
-              style={[styles.typography.body, { color: styles.colors.text }]}
-            >
-              Ad
-            </Text>
-            <TextInput
-              value={formData.firstName}
-              onChangeText={(text) => handleFieldChange("firstName", text)}
-              style={[
-                localStyles.input,
-                {
-                  backgroundColor: styles.colors.background,
-                  color: styles.colors.text,
-                  borderColor: styles.colors.border,
-                },
-              ]}
-              maxLength={50}
-            />
-          </View>
-
-          <View style={localStyles.inputGroup}>
-            <Text
-              style={[styles.typography.body, { color: styles.colors.text }]}
-            >
-              Soyad
-            </Text>
-            <TextInput
-              value={formData.lastName}
-              onChangeText={(text) => handleFieldChange("lastName", text)}
-              style={[
-                localStyles.input,
-                {
-                  backgroundColor: styles.colors.background,
-                  color: styles.colors.text,
-                  borderColor: styles.colors.border,
-                },
-              ]}
-              maxLength={50}
-            />
-          </View>
-
-          <View style={localStyles.inputGroup}>
-            <Text
-              style={[styles.typography.body, { color: styles.colors.text }]}
-            >
-              Yaş
-            </Text>
-            <TextInput
-              value={formData.age.toString()}
-              onChangeText={(text) => {
-                const age = parseInt(text) || 0;
-                handleFieldChange("age", age);
-              }}
-              style={[
-                localStyles.input,
-                {
-                  backgroundColor: styles.colors.background,
-                  color: styles.colors.text,
-                  borderColor: styles.colors.border,
-                },
-              ]}
-              keyboardType="numeric"
-              maxLength={3}
-            />
-          </View>
-
-          <View style={localStyles.inputGroup}>
-            <Text
-              style={[styles.typography.body, { color: styles.colors.text }]}
-            >
-              E-posta
-            </Text>
-            <TextInput
-              value={formData.email}
-              onChangeText={(text) => handleFieldChange("email", text)}
-              style={[
-                localStyles.input,
-                {
-                  backgroundColor: styles.colors.background,
-                  color: styles.colors.text,
-                  borderColor: styles.colors.border,
-                },
-              ]}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              maxLength={100}
-            />
-          </View>
-
-          <View style={localStyles.inputGroup}>
-            <Text
-              style={[styles.typography.body, { color: styles.colors.text }]}
-            >
-              Telefon
-            </Text>
-            <TextInput
-              value={formData.phone}
-              onChangeText={(text) => handleFieldChange("phone", text)}
-              style={[
-                localStyles.input,
-                {
-                  backgroundColor: styles.colors.background,
-                  color: styles.colors.text,
-                  borderColor: styles.colors.border,
-                },
-              ]}
-              keyboardType="phone-pad"
-              maxLength={20}
-            />
-          </View>
-
-          <TouchableOpacity
+          <View
             style={[
-              localStyles.saveButton,
-              { backgroundColor: styles.colors.primary },
+              localStyles.modalHeader,
+              { borderBottomColor: styles.colors.border },
             ]}
-            onPress={handleSave}
           >
-            <Text style={[styles.typography.body, { color: "white" }]}>
-              Kaydet
+            <Text style={[styles.typography.h1, { color: styles.colors.text }]}>
+              Kişisel Bilgiler
             </Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
+            <TouchableOpacity onPress={onClose}>
+              <MaterialIcons
+                name="close"
+                color={styles.colors.text}
+                size={24}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={localStyles.modalContent}>
+            <View style={localStyles.inputGroup}>
+              <Text
+                style={[styles.typography.body, { color: styles.colors.text }]}
+              >
+                Ad
+              </Text>
+              <TextInput
+                value={formData.firstName}
+                onChangeText={(text) => handleFieldChange("firstName", text)}
+                style={[
+                  localStyles.input,
+                  {
+                    backgroundColor: styles.colors.background,
+                    color: styles.colors.text,
+                    borderColor: styles.colors.border,
+                  },
+                ]}
+                maxLength={50}
+              />
+            </View>
+
+            <View style={localStyles.inputGroup}>
+              <Text
+                style={[styles.typography.body, { color: styles.colors.text }]}
+              >
+                Soyad
+              </Text>
+              <TextInput
+                value={formData.lastName}
+                onChangeText={(text) => handleFieldChange("lastName", text)}
+                style={[
+                  localStyles.input,
+                  {
+                    backgroundColor: styles.colors.background,
+                    color: styles.colors.text,
+                    borderColor: styles.colors.border,
+                  },
+                ]}
+                maxLength={50}
+              />
+            </View>
+
+            <View style={localStyles.inputGroup}>
+              <Text
+                style={[styles.typography.body, { color: styles.colors.text }]}
+              >
+                Yaş
+              </Text>
+              <TextInput
+                value={formData.age.toString()}
+                onChangeText={(text) => {
+                  const age = parseInt(text) || 0;
+                  handleFieldChange("age", age);
+                }}
+                style={[
+                  localStyles.input,
+                  {
+                    backgroundColor: styles.colors.background,
+                    color: styles.colors.text,
+                    borderColor: styles.colors.border,
+                  },
+                ]}
+                keyboardType="numeric"
+                maxLength={3}
+              />
+            </View>
+
+            <View style={localStyles.inputGroup}>
+              <Text
+                style={[styles.typography.body, { color: styles.colors.text }]}
+              >
+                E-posta
+              </Text>
+              <TextInput
+                value={formData.email}
+                onChangeText={(text) => handleFieldChange("email", text)}
+                style={[
+                  localStyles.input,
+                  {
+                    backgroundColor: styles.colors.background,
+                    color: styles.colors.text,
+                    borderColor: styles.colors.border,
+                  },
+                ]}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                maxLength={100}
+              />
+            </View>
+
+            <View style={localStyles.inputGroup}>
+              <Text
+                style={[styles.typography.body, { color: styles.colors.text }]}
+              >
+                Telefon
+              </Text>
+              <TextInput
+                value={formData.phone}
+                onChangeText={(text) => handleFieldChange("phone", text)}
+                style={[
+                  localStyles.input,
+                  {
+                    backgroundColor: styles.colors.background,
+                    color: styles.colors.text,
+                    borderColor: styles.colors.border,
+                  },
+                ]}
+                keyboardType="phone-pad"
+                maxLength={20}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[
+                localStyles.saveButton,
+                { backgroundColor: styles.colors.primary },
+              ]}
+              onPress={handleSave}
+            >
+              <Text style={[styles.typography.body, { color: "white" }]}>
+                Kaydet
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </SafeAreaView>
     </Modal>
   );
 }
