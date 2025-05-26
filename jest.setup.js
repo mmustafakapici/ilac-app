@@ -132,3 +132,25 @@ jest.mock("react-native", () => {
     findNodeHandle: jest.fn(),
   };
 });
+
+jest.mock("react-native-svg", () => {
+  const React = require("react");
+  return {
+    Svg: (props) => React.createElement("svg", props),
+    Path: (props) => React.createElement("path", props),
+    // Diğer svg elemanları eklenebilir
+  };
+});
+
+jest.mock('expo-modules-core', () => ({
+  NativeModulesProxy: {},
+  NativeModule: {},
+  requireNativeModule: () => ({}),
+}));
+
+jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaView: ({ children }) => children,
+  SafeAreaProvider: ({ children }) => children,
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  useSafeAreaFrame: () => ({ x: 0, y: 0, width: 375, height: 812 }),
+}));

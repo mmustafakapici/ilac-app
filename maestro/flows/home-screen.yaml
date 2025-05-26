@@ -1,0 +1,7 @@
+appId: com.mmustafa_kapici.dosemate
+---
+- launchApp
+- assertVisible: "Hoşgeldiniz"
+- assertVisible: "İlaçlar"
+- tapOn: "İlaçlar"
+- assertVisible: "Ekle" 

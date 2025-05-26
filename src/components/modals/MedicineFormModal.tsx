@@ -886,7 +886,9 @@ export default function MedicineFormModal({
                         ? "08:00"
                         : timeOfDay === "noon"
                         ? "14:00"
-                        : "20:00";
+                        : timeOfDay === "evening"
+                        ? "20:00"
+                        : "23:59";
                     setFormData({
                       ...formData,
                       usage: {

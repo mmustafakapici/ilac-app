@@ -1,0 +1,8 @@
+appId: com.mmustafa_kapici.dosemate
+---
+- launchApp
+- tapOn: "Profil"
+- tapOn: "Kişisel Bilgiler"
+- inputText: "Mehmet"
+- tapOn: "Kaydet"
+- assertVisible: "Mehmet" 

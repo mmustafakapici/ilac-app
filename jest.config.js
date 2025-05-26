@@ -2,7 +2,7 @@ module.exports = {
   preset: "react-native",
   setupFiles: ["./jest.setup.js"],
   transformIgnorePatterns: [
-    "node_modules/(?!(react-native|@react-native|react-native-calendars|react-native-svg|lucide-react-native)/)"
+    "node_modules/(?!(react-native|@react-native|@expo|expo|@expo/vector-icons|expo-font|expo-modules-core|react-native-calendars|lucide-react-native|react-native-svg)/)",
   ],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",

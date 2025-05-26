@@ -18,7 +18,12 @@ jest.mock('../../../src/services/notificationStore');
 
 describe('reminderService', () => {
   beforeEach(() => {
+    jest.useFakeTimers().setSystemTime(new Date('2024-03-19T12:00:00Z'));
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   describe('scheduleRemindersFromDatabase', () => {

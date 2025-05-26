@@ -15,13 +15,14 @@ export const TIME_PRESETS = {
   '1x1': ['08:00'],
   '2x1': ['08:00', '20:00'],
   '3x1': ['08:00', '14:00', '20:00'],
-  '4x1': ['08:00', '12:00', '16:00', '20:00'],
+  '4x1': ['08:00', '14:00', '20:00', '23:59'],
 };
 
 export const DEFAULT_TIMES = {
   morning: '08:00',
   noon: '14:00',
   evening: '20:00',
+  night: '23:59',
 } as const;
 
 export const UNIT_OPTIONS = ['mg', 'ml', 'g', 'IU'];

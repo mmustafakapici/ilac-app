@@ -1,0 +1,9 @@
+appId: com.mmustafa_kapici.dosemate
+---
+- launchApp
+- tapOn: "Profil"
+- tapOn: "Bildirim Ayarları"
+- tapOn: "Sesli Bildirim"
+- assertVisible: "Sesli Bildirim"
+- tapOn: "Titreşim"
+- assertVisible: "Titreşim" 

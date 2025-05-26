@@ -41,3 +41,26 @@ export async function removeNotificationId(reminderId: string) {
 export async function clearNotificationStore() {
   await AsyncStorage.removeItem(NOTIFICATION_STORE_KEY);
 }
+
+// Debug fonksiyonu - Tüm notification keylerini ve değerlerini gösterir
+export async function debugNotificationStore(): Promise<void> {
+  try {
+    const store = await getNotificationStore();
+    console.log('=== Notification Store Debug Bilgisi ===');
+    console.log('Toplam Kayıtlı Bildirim:', Object.keys(store).length);
+    
+    if (Object.keys(store).length === 0) {
+      console.log('Henüz kayıtlı bildirim bulunmuyor.');
+      return;
+    }
+
+    console.log('\nBildirim Detayları:');
+    for (const [reminderId, notificationId] of Object.entries(store)) {
+      console.log(`\nReminder ID: ${reminderId}`);
+      console.log(`Notification ID: ${notificationId}`);
+      console.log('------------------------');
+    }
+  } catch (error) {
+    console.error('Notification store debug hatası:', error);
+  }
+}

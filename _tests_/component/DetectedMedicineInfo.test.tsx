@@ -1,32 +1,21 @@
 import React from "react";
-import { render } from "@testing-library/react-native";
-import DetectedMedicineInfo from "../../src/components/DetectedMedicineInfo";
+import { render, fireEvent } from "@testing-library/react-native";
+import DetectedMedicineInfo from "@/components/DetectedMedicineInfo";
 
 describe("DetectedMedicineInfo", () => {
-  const mockProps = {
-    name: "Parol",
-    dosage: "500mg",
-    onConfirm: jest.fn(),
-    onCancel: jest.fn(),
-    loading: false,
-  };
-
-  it("component render edilmeli", () => {
-    const { getByText } = render(<DetectedMedicineInfo {...mockProps} />);
-    expect(getByText("Parol")).toBeTruthy();
-    expect(getByText("500mg")).toBeTruthy();
-  });
-
-  it("onConfirm ve onCancel butonları olmalı", () => {
-    const { getByText } = render(<DetectedMedicineInfo {...mockProps} />);
-    expect(getByText("Onayla")).toBeTruthy();
-    expect(getByText("İptal")).toBeTruthy();
-  });
-
-  it("loading durumunda yükleniyor göstergesi olmalı", () => {
-    const { getByTestId } = render(
-      <DetectedMedicineInfo {...mockProps} loading={true} />
+  const medicine = { name: "Parol" };
+  const onUse = jest.fn();
+  it("ilaç adını doğru gösterir", () => {
+    const { getByText } = render(
+      <DetectedMedicineInfo medicine={medicine} onUse={onUse} />
     );
-    expect(getByTestId("loading-indicator")).toBeTruthy();
+    expect(getByText("Parol")).toBeTruthy();
+  });
+  it("Kullan butonuna tıklanabilir", () => {
+    const { getByText } = render(
+      <DetectedMedicineInfo medicine={medicine} onUse={onUse} />
+    );
+    fireEvent.press(getByText("Kullan"));
+    expect(onUse).toHaveBeenCalled();
   });
 });

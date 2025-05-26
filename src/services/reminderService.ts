@@ -3,9 +3,41 @@ import { getAllReminders, getUser } from './dataService';
 import { 
     saveNotificationId, 
     getNotificationId, 
-    removeNotificationId 
+    removeNotificationId,
+    getNotificationStore 
 } from './notificationStore';
 import { ReminderStatus } from '@/models/reminder';
+
+// Debug log fonksiyonu
+async function logNotificationDebug(reminder: any, notificationId: string, triggerTime: { hour: number; minute: number }) {
+    console.log('\n=== Bildirim Debug Bilgisi ===');
+    console.log('📅 Tarih:', new Date().toLocaleDateString('tr-TR'));
+    console.log('⏰ Saat:', new Date().toLocaleTimeString('tr-TR'));
+    console.log('\n📌 Reminder Bilgileri:');
+    console.log('   • Reminder ID:', reminder.id);
+    console.log('   • İlaç ID:', reminder.medicineId);
+    console.log('   • İlaç Adı:', reminder.title);
+    console.log('   • Açıklama:', reminder.description);
+    console.log('   • Planlanan Tarih:', reminder.date);
+    console.log('   • Planlanan Saat:', reminder.time);
+    console.log('   • Durum:', reminder.isTaken ? 'Alındı' : 'Bekliyor');
+    
+    console.log('\n🔔 Bildirim Detayları:');
+    console.log('   • Notification ID:', notificationId);
+    console.log('   • Tetiklenme Saati:', `${triggerTime.hour}:${triggerTime.minute}`);
+    console.log('   • Ses:', reminder.sound ? 'Açık' : 'Kapalı');
+    
+    console.log('\n📝 Store Bilgileri:');
+    const store = await getNotificationStore();
+    console.log('   • Toplam Kayıtlı Bildirim:', Object.keys(store).length);
+    console.log('   • Bu Reminder için Önceki Bildirim:', await getNotificationId(reminder.id) || 'Yok');
+    
+    console.log('\n⚙️ Sistem Bilgileri:');
+    console.log('   • Bildirim İzni:', (await Notifications.getPermissionsAsync()).status);
+    console.log('   • Bildirim Kanalı:', await Notifications.getNotificationChannelAsync('default'));
+    
+    console.log('\n------------------------\n');
+}
 
 // 🔹 Hatırlatma saatinden offset düşüp tetiklenme saatini hesaplar
 function calculateTrigger(timeStr: string, offset: number): { hour: number; minute: number } {
@@ -23,6 +55,39 @@ async function ensureNotificationPermission(): Promise<boolean> {
         return newStatus === 'granted';
     }
     return true;
+}
+
+// Bildirim içeriğini oluşturan yardımcı fonksiyon
+function createNotificationContent(reminder: any, user: any) {
+    const currentHour = new Date().getHours();
+    let greeting = '';
+    
+    // Saate göre selamlama
+    if (currentHour >= 5 && currentHour < 12) {
+        greeting = 'Günaydın';
+    } else if (currentHour >= 12 && currentHour < 18) {
+        greeting = 'İyi Günler';
+    } else if (currentHour >= 18 && currentHour < 22) {
+        greeting = 'İyi Akşamlar';
+    } else {
+        greeting = 'İyi Geceler';
+    }
+
+    // Bildirim başlığı
+    const title = `${greeting} ${user.firstName}! ${reminder.title}`;
+
+    // Bildirim açıklaması
+    const body = `${reminder.description}\n\n` +
+                 `💊 Doz: ${reminder.medicine?.dosage?.amount || ''} ${reminder.medicine?.dosage?.unit || ''}\n` +
+                 `⏰ Saat: ${reminder.time}\n` +
+                 `📅 Tarih: ${new Date(reminder.date).toLocaleDateString('tr-TR')}`;
+
+    return {
+        title,
+        body,
+        sound: user.notificationPreferences.sound ? 'default' : undefined,
+        data: { reminderId: reminder.id }
+    };
 }
 
 /**
@@ -67,22 +132,23 @@ export async function scheduleRemindersFromDatabase(): Promise<void> {
             }
 
             // 🔹 Yeni notification için saat hesapla
-            const { hour, minute } = calculateTrigger(reminder.time, offset);
+            const triggerTime = calculateTrigger(reminder.time, offset);
+
+            // Bildirim içeriğini oluştur
+            const notificationContent = createNotificationContent(reminder, user);
 
             const notificationId = await Notifications.scheduleNotificationAsync({
-                content: {
-                    title: reminder.title,
-                    body: reminder.description,
-                    sound: user.notificationPreferences.sound ? 'default' : undefined,
-                    data: { reminderId: reminder.id } // Bildirime ID eklendi, tıklanınca işlenebilir
-                },
+                content: notificationContent,
                 trigger: {
                     type: 'daily',
-                    hour,
-                    minute,
+                    hour: triggerTime.hour,
+                    minute: triggerTime.minute,
                     repeats: true,
                 }
             });
+
+            // Debug log'u çağır
+            await logNotificationDebug(reminder, notificationId, triggerTime);
 
             // 🔹 Yeni notificationId'yi NotificationStore'a kaydet
             await saveNotificationId(reminder.id, notificationId);
@@ -93,7 +159,7 @@ export async function scheduleRemindersFromDatabase(): Promise<void> {
                 day: 'numeric'
             });
 
-            console.log(`Yeni bildirim planlandı: ${reminder.title} - Tarih: ${reminderDate} - Saat: ${hour}:${minute}`);
+            console.log(`Yeni bildirim planlandı: ${reminder.title} - Tarih: ${reminderDate} - Saat: ${triggerTime.hour}:${triggerTime.minute}`);
 
         } catch (err) {
             console.error(`Reminder ${reminder.id} için planlama hatası:`, err);

@@ -1,0 +1,9 @@
+appId: com.mmustafa_kapici.dosemate
+---
+- launchApp
+- tapOn: "İlaçlar"
+- tapOn: "Parol"
+- tapOn: "Sil"
+- assertVisible: "İlacı Sil"
+- tapOn: "İlacı Sil"
+- assertNotVisible: "Parol" 

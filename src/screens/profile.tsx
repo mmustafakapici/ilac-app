@@ -28,6 +28,7 @@ import {
   cancelAllSchedules,
   scheduleRemindersFromDatabase,
 } from "@/services/reminderService";
+import { debugNotificationStore } from "@/services/notificationStore";
 
 // Varsayılan demo ilacı
 const DEMO_MEDICINE = {
@@ -179,7 +180,10 @@ export default function ProfileScreen() {
             />
           }
           title="Planlanmış Bildirimler"
-          onPress={() => setIsScheduledNotificationsModalVisible(true)}
+          onPress={async () => {
+            await debugNotificationStore();
+            setIsScheduledNotificationsModalVisible(true);
+          }}
         />
 
         <ProfileOption

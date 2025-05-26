@@ -5,9 +5,10 @@ import {
   ActivityIndicator,
   Text,
   RefreshControl,
+  TouchableOpacity,
 } from "react-native";
 import DailyMedicationCard from "@/components/DailyMedicationCard";
-import { Reminder } from "@/models/reminder";
+import { Reminder, ReminderStatus } from "@/models/reminder";
 import { useState, useEffect, useCallback } from "react";
 import { useIsFocused } from "@react-navigation/native";
 import { getRemindersByDate, updateReminder } from "@/services/dataService";
@@ -15,6 +16,7 @@ import { styles } from "@/constants/theme";
 import { groupByDate } from "@/utils/arrayUtils";
 import { parseISODate, isSameDay, parseTime } from "@/utils/dateUtils";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { MaterialIcons } from "@expo/vector-icons";
 
 export default function DailyScreen() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
@@ -29,7 +31,39 @@ export default function DailyScreen() {
       setError(null);
       const today = new Date().toISOString().split("T")[0];
       const data = await getRemindersByDate(today);
-      setReminders(data);
+
+      // Şu anki saati al
+      const now = new Date();
+      const currentTime = now.toLocaleTimeString("tr-TR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
+
+      // Saati geçen ve alınmamış ilaçları "kaçırıldı" olarak işaretle
+      const updatedReminders = await Promise.all(
+        data.map(async (reminder) => {
+          if (!reminder.isTaken && reminder.status !== ReminderStatus.SKIPPED) {
+            const reminderTime = reminder.scheduledTime
+              .split("T")[1]
+              ?.slice(0, 5);
+            if (reminderTime && reminderTime < currentTime) {
+              // Kaçırıldı olarak işaretle
+              const updatedReminder = {
+                ...reminder,
+                status: ReminderStatus.MISSED,
+                updatedAt: new Date().toISOString(),
+              };
+              // Veritabanını güncelle
+              await updateReminder(updatedReminder);
+              return updatedReminder;
+            }
+          }
+          return reminder;
+        })
+      );
+
+      setReminders(updatedReminders);
     } catch (err) {
       console.error("Error loading reminders:", err);
       setError("Hatırlatıcılar yüklenirken bir hata oluştu.");
@@ -56,6 +90,7 @@ export default function DailyScreen() {
       const updatedReminder = {
         ...reminder,
         isTaken: newStatus,
+        status: newStatus ? ReminderStatus.TAKEN : ReminderStatus.PENDING,
         updatedAt: new Date().toISOString(),
       };
       await updateReminder(updatedReminder);
@@ -63,6 +98,22 @@ export default function DailyScreen() {
     } catch (error) {
       console.error("Error updating reminder status:", error);
       setError("Hatırlatıcı durumu güncellenirken bir hata oluştu.");
+    }
+  };
+
+  const handleSkipReminder = async (reminder: Reminder) => {
+    try {
+      const updatedReminder = {
+        ...reminder,
+        isTaken: false,
+        status: ReminderStatus.SKIPPED,
+        updatedAt: new Date().toISOString(),
+      };
+      await updateReminder(updatedReminder);
+      await loadReminders();
+    } catch (error) {
+      console.error("Error skipping reminder:", error);
+      setError("Hatırlatıcı atlanırken bir hata oluştu.");
     }
   };
 
@@ -91,9 +142,16 @@ export default function DailyScreen() {
   );
 
   const categorizeReminders = (reminders: Reminder[]) => ({
-    upcoming: reminders.filter((r) => !r.isTaken && r.scheduledTime >= now),
+    missed: reminders.filter(
+      (r) => !r.isTaken && r.status === ReminderStatus.MISSED
+    ),
+    upcoming: reminders.filter(
+      (r) =>
+        !r.isTaken &&
+        r.status !== ReminderStatus.MISSED &&
+        r.scheduledTime >= now
+    ),
     taken: reminders.filter((r) => r.isTaken),
-    missed: reminders.filter((r) => !r.isTaken && r.scheduledTime < now),
   });
 
   const formatReminder = (reminder: Reminder) => {
@@ -133,7 +191,7 @@ export default function DailyScreen() {
     reminders,
     color,
   }: {
-    title: string;
+    title: string | React.ReactNode;
     reminders: Reminder[];
     color: string;
   }) =>
@@ -145,16 +203,22 @@ export default function DailyScreen() {
             { marginBottom: styles.spacing.sm },
           ]}
         >
-          <Text style={[styles.typography.h3, { color }]}>{title}</Text>
+          {typeof title === "string" ? (
+            <Text style={[styles.typography.h3, { color }]}>{title}</Text>
+          ) : (
+            title
+          )}
           <Text style={{ color }}>{reminders.length} ilaç</Text>
         </View>
 
         {reminders.map((reminder) => (
-          <DailyMedicationCard
-            key={reminder.id}
-            reminder={formatReminder(reminder)}
-            onStatusChange={handleStatusChange}
-          />
+          <View key={reminder.id}>
+            <DailyMedicationCard
+              reminder={formatReminder(reminder)}
+              onStatusChange={handleStatusChange}
+              onSkip={handleSkipReminder}
+            />
+          </View>
         ))}
       </View>
     );
@@ -215,6 +279,28 @@ export default function DailyScreen() {
         ) : (
           <View style={{ marginBottom: styles.spacing.xl }}>
             <ReminderSection
+              title={
+                <View style={localStyles.sectionTitleContainer}>
+                  <MaterialIcons
+                    name="warning"
+                    size={24}
+                    color={styles.colors.danger}
+                  />
+                  <Text
+                    style={[
+                      styles.typography.h3,
+                      { color: styles.colors.danger, marginLeft: 8 },
+                    ]}
+                  >
+                    Kaçırılan İlaçlar
+                  </Text>
+                </View>
+              }
+              reminders={categorizeReminders(todaysReminders).missed}
+              color={styles.colors.danger}
+            />
+
+            <ReminderSection
               title="Yaklaşan İlaçlar"
               reminders={categorizeReminders(todaysReminders).upcoming}
               color={styles.colors.primary}
@@ -224,12 +310,6 @@ export default function DailyScreen() {
               title="Alınan İlaçlar"
               reminders={categorizeReminders(todaysReminders).taken}
               color={styles.colors.success}
-            />
-
-            <ReminderSection
-              title="Kaçırılan İlaçlar"
-              reminders={categorizeReminders(todaysReminders).missed}
-              color={styles.colors.danger}
             />
           </View>
         )}
@@ -250,6 +330,10 @@ const localStyles = StyleSheet.create({
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
+  },
+  sectionTitleContainer: {
+    flexDirection: "row",
     alignItems: "center",
   },
   emptyContainer: {

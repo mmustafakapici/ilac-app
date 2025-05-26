@@ -10,7 +10,9 @@ interface TimeSelectorProps {
   onTimeSelect: (time: string, index: number) => void;
   onTimeAdd: () => void;
   onTimeRemove: (index: number) => void;
-  onDefaultTimeSelect: (timeOfDay: "morning" | "noon" | "evening") => void;
+  onDefaultTimeSelect: (
+    timeOfDay: "morning" | "noon" | "evening" | "night"
+  ) => void;
   onShowTimePicker: (index: number) => void;
 }
 
@@ -129,6 +131,40 @@ export default function TimeSelector({
             ]}
           >
             Akşam ({DEFAULT_TIMES.evening})
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => onDefaultTimeSelect("night")}
+          style={[
+            localStyles.defaultTimeButton,
+            {
+              backgroundColor: times.includes(DEFAULT_TIMES.night)
+                ? styles.colors.primary
+                : styles.colors.card,
+              borderColor: styles.colors.border,
+            },
+          ]}
+        >
+          <MaterialCommunityIcons
+            name="weather-night"
+            size={16}
+            color={
+              times.includes(DEFAULT_TIMES.night) ? "white" : styles.colors.text
+            }
+          />
+          <Text
+            style={[
+              styles.typography.body,
+              {
+                marginLeft: 8,
+                color: times.includes(DEFAULT_TIMES.night)
+                  ? "white"
+                  : styles.colors.text,
+              },
+            ]}
+          >
+            Gece ({DEFAULT_TIMES.night})
           </Text>
         </TouchableOpacity>
       </View>
